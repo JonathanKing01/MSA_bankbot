@@ -11,8 +11,8 @@ var connector = new builder.ChatConnector({
     appPassword:"qdmcoQKY617$_fpWFZC68#_"
 });
 
-server.post("./api/messages", connector.listen());
+server.post("/api/messages", connector.listen());
 
 var bot = new builder.UniversalBot(connector, function(session){
-    session.send("I'm working. You just said:" + session.message.text);
+    session.send("I'm working. You just said: " + session.message.text);
 })
