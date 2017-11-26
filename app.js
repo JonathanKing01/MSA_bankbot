@@ -1,6 +1,6 @@
 var builder = require("botbuilder");
 var restify = require("restify");
-var luis = require("./controller/luisDialouge");
+var luis = require("./controller/luisDialog");
 
 var server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 3978, function(){
