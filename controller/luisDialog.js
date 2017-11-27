@@ -1,5 +1,7 @@
+
 var builder = require('botbuilder');
 var welcomeCardBuilder = require('./welcomeCard');
+var loginData = require("./UserLogin");
 
 exports.startDialog = function (bot) {
     // Replace {YOUR_APP_ID_HERE} and {YOUR_KEY_HERE} with your LUIS app ID and your LUIS key, respectively.
@@ -33,11 +35,26 @@ exports.startDialog = function (bot) {
         matches: 'AccountSecurityIntent'
     });
 
-    bot.dialog('AccountQueriesIntent', function (session, args) {
-        
-        session.send("What would you like to know about your account?");
+    bot.dialog('AccountQueriesIntent', [
+    function (session, args, next) {
+            builder.Prompts.text(session, "Please enter the username to your account:");  
+    },
+    function (session, results, args, next) {
+
+        if (results.response){
+            session.conversationData["username"] = results.response;
+        }
+            builder.Prompts.text(session, "Enter the password for your account:");     
+    },
+    function (session, results,next) {
+        if (results.response){
+            session.conversationData["password"] = results.response;
+        }
+
+        loginData.attemptLogin(session,session.conversationData["username"],session.conversationData["password"]);
+     }]
     
-    }).triggerAction({
+    ).triggerAction({
         matches: 'AccountQueriesIntent'
     });
 
@@ -48,4 +65,27 @@ exports.startDialog = function (bot) {
     }).triggerAction({
         matches: 'InternationalTradingIntent'
     });
+
+    bot.dialog('requestLoginTimeIntent', [
+        function (session, args, next) {
+            if (!session.conversationData["username"]) {
+                builder.Prompts.text(session, "Enter the username to the account:");           
+            } else {
+                next(); // Skip if we already have this info.
+            }
+        },
+        function (session, results,next) {
+            
+            if (results.response){
+                session.conversationData["username"] = results.response;
+            }
+            
+            loginData.displayLastLogin(session,session.conversationData["username"]);
+        }]
+    
+    ).triggerAction({
+        matches: 'requestLoginTimeIntent'
+    });
+
+    
 }
