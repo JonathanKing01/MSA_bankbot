@@ -2,6 +2,7 @@
 var builder = require('botbuilder');
 var welcomeCardBuilder = require('./welcomeCard');
 var loginData = require("./UserLogin");
+var customVision = require("./customVision");
 
 exports.startDialog = function (bot) {
     // Replace {YOUR_APP_ID_HERE} and {YOUR_KEY_HERE} with your LUIS app ID and your LUIS key, respectively.
@@ -88,4 +89,75 @@ exports.startDialog = function (bot) {
     });
 
     
+
+    bot.dialog("ResetPasswordIntent",[
+        function (session, args, next) {
+            if (!session.conversationData["username"]) {
+                builder.Prompts.text(session, "Enter the username to your account:");           
+            } else {
+                next(); // Skip if we already have this info.
+            }
+        },
+        function (session, results, next) {
+            
+            if (results.response){
+                session.conversationData["username"] = results.response;
+            }
+            if (!session.conversationData["password"]) {
+                builder.Prompts.text(session, "Please enter the password for your account:");           
+            } 
+            next();
+        },
+        function (session, results, next) {
+            if (results.response){
+                session.conversationData["password"] = results.response;
+            }
+            loginData.attemptLogin(session,session.conversationData["username"],session.conversationData["password"]);
+        
+            next();
+        },
+        function (session, results, next) {
+            
+            if (!session.conversationData["loggedIn"]) {
+                // Not finished, need to add a login loop
+                session.send(session, "Sorry, you cannot reset your password until you log in correctly");           
+                
+            } else {
+                builder.Prompts.text(session,"When you created your account you posted pictures of a certain item. Please post the url a picture of that item.");
+                
+            }
+        },
+        function (session, results, next) {
+            customVision.retreiveMessage(session, results.response);
+        },
+        function(session,results, next){
+            if (session.conversationData["loggedIn"]){
+                if (results.response){
+                    session.conversationData["password"] = results.response;
+                }
+            
+                loginData.makeNewUser(session,session.conversationData["username"],session.conversationData["password"],session.conversationData["tag"]);
+                session.send("Password successfully reset");
+            }
+        }
+    ]).triggerAction({
+      matches: 'ResetPasswordIntent'  
+    });
+
+    function isAttachment(session) { 
+        var msg = session.message.text;
+        if ((session.message.attachments && session.message.attachments.length > 0) || msg.includes("http")) {
+            if(!session.conversationData["loggedIn"]){
+                //call custom vision
+                customVision.retreiveMessage(session);
+            } else {
+                session.send("Please login first before attempting to reset password");
+            }
+            return true;
+            
+        }
+        else {
+            return false;
+        }
+    }
 }

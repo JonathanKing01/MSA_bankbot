@@ -12,7 +12,7 @@ exports.displayWelcomeCard = function displayWelcomeCard(session){
         .title("Welcome to the Contoso help bot")
         .text("Please select form the list how I can help you, or type a message in the chat box.")
         .buttons([
-            builder.CardAction.imBack(session,"Account Security","Account Security"),
+            //builder.CardAction.imBack(session,"Account Security","Account Security"),
             builder.CardAction.imBack(session,"Account Queries","Account Queries"),
             builder.CardAction.imBack(session,"International Trading","International Trading")
         ]);
