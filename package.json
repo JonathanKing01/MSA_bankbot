@@ -21,6 +21,8 @@
   "homepage": "https://github.com/JonathanKing01/MSA_bankbot#readme",
   "dependencies": {
     "botbuilder": "^3.12.0",
-    "restify": "^6.3.4"
+    "restify": "^6.3.4",
+    "urlencode": "^1.1.0",
+    "xml2js": "^0.4.19"
   }
 }
