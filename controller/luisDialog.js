@@ -1,21 +1,22 @@
 
+
 var builder = require('botbuilder');
 var welcomeCardBuilder = require('./welcomeCard');
 var loginData = require("./UserLogin");
 var customVision = require("./customVision");
 var currency = require("./currency");
+var request = require('request'); //node module for http post requests
 
 exports.startDialog = function (bot) {
-    // Replace {YOUR_APP_ID_HERE} and {YOUR_KEY_HERE} with your LUIS app ID and your LUIS key, respectively.
+    
     var recognizer = new builder.LuisRecognizer('https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/5e8ad9f9-1389-4371-a546-7ef5862e1627?subscription-key=0a7a2d006b77485a81f3c00a2e4aae23&verbose=true&timezoneOffset=0&q=');
 
     bot.recognizer(recognizer);
 
-    
-
     bot.dialog('WelcomeIntent', function (session, args) {
-        
-        welcomeCardBuilder.displayWelcomeCard(session);
+        var logoURL = "http://cdn.marketplaceimages.windowsphone.com/v8/images/6e04c950-e28a-46fc-bc83-fe244d8a9de9?imageType=ws_icon_large";
+        var logo = builder.CardImage.create(session,logoURL);
+        welcomeCardBuilder.displayWelcomeCard(session, logo);
     
     }).triggerAction({
         matches: 'WelcomeIntent'
@@ -62,7 +63,7 @@ exports.startDialog = function (bot) {
 
     bot.dialog('InternationalTradingIntent', function (session, args) {
         
-        session.send("What would you like to know about the international market? (At the moment all I can do is convert currency)");
+        session.send("What would you like to know about the international market? (Exchange example: 50 USD to NZD)");
     
     }).triggerAction({
         matches: 'InternationalTradingIntent'
@@ -88,7 +89,7 @@ exports.startDialog = function (bot) {
     ).triggerAction({
         matches: 'requestLoginTimeIntent'
     });
-
+        
     bot.dialog('currencyExchangeIntent', 
         function (session, args, next) {
             
@@ -96,8 +97,11 @@ exports.startDialog = function (bot) {
         var from = builder.EntityRecognizer.findEntity(args.intent.entities, 'from').entity;
         var to = builder.EntityRecognizer.findEntity(args.intent.entities, 'to').entity;
 
+        if(amount == undefined){
+            amount = 1;
+        }
+
         currency.displayExchangeInfo(session,amount,from,to);
-        
     }
     ).triggerAction({
         matches: "currencyExchangeIntent"
@@ -116,12 +120,15 @@ exports.startDialog = function (bot) {
             if (results.response){
                 session.conversationData["username"] = results.response;
             }
-            
-            builder.Prompts.attachment(session,"When you created your account you posted pictures of a certain item. Please post the url of a picture of that item.");
-            
+            builder.Prompts.text(session,"When you created your account you posted pictures of a certain item. Please post the url of a picture of that item.");
         },
         function (session, results, next) {
-            customVision.retreiveMessage(session, results.response);
+
+            if(results.response == "Admin coffee overide"){
+                loginData.lookupPicture(session, session.conversationData["username"], "coffee");
+            } else {
+                customVision.retreiveMessage(session, results.response);
+            }
         },
         function(session,results, next){
             if (results.response){
@@ -137,3 +144,4 @@ exports.startDialog = function (bot) {
     });
 
 }
+
