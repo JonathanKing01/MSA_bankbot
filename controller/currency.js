@@ -12,10 +12,12 @@ exports.displayExchangeInfo = function getExchangeData(session,amount,from, to){
 }
 
 function displayExchangeRate(message, session, amount, from, to){
-    var response = JSON.parse(message.substring(40,360));
+    var response = JSON.parse(message);
 
-    var rate = response["5. Exchange Rate"];
+    var rate = response["Realtime Currency Exchange Rate"];
 
-    session.send("Excange rate: %s %s : %s %s", amount, from, amount*rate, to);
+    var result = rate["5. Exchange Rate"] * amount;
+
+    session.send("Excange rate: %s %s : %s %s", amount, from, result.toPrecision(4), to);
 }
 
