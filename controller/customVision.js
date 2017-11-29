@@ -10,9 +10,9 @@ exports.retreiveMessage = function (session, message){
             'Content-Type': 'application/json',
             'Prediction-Key': 'b751bcbfca2447c6b5f320fe5c287524'
         },
-        body: { 'Url': message }
+        body: { 'Url': message}
     }, function(error, response, body){
-        userLogin.lookupPicture(session,session.conversationData["username"] ,session.conversationData["password"], body.Predictions[0].Tag);
+        userLogin.lookupPicture(session,session.conversationData["username"] , body.Predictions[0].Tag);
     });
 }
 

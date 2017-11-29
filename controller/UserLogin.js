@@ -17,9 +17,9 @@ exports.attemptLogin = function lookForUser(session, username, password){
     rest.lookForUser(url,session, username, password, handleUserLookupResponse);
 }
 
-exports.lookupPicture = function getUsers(session, username, password, tag){
+exports.lookupPicture = function getUsers(session, username, tag){
     var url = "https://foodboot.azurewebsites.net/tables/userAccounts";
-    rest.lookForUser(url,session, username, password, changeUsersPassword, tag);
+    rest.lookForUserbyPicture(url,session, username, changeUsersPassword, tag);
 }
 
 exports.makeNewUser = function postNewUser(session, username, password, tag){
@@ -92,20 +92,19 @@ function handleUserLookupResponse(message,session,username,password){
 
 }
 
-function changeUsersPassword(message, session, username, password, tag){
+function changeUsersPassword(message, session, username,tag){
     var lookupResponse = JSON.parse(message);
     
     var userIndex = -1
     
         for (var i in lookupResponse){
             if (username == lookupResponse[i].username){
-                if(password == lookupResponse[i].password){
-                    if(tag == lookupResponse[i].securityPicture){
-                        userIndex = i;
-                    }
+                if(tag == lookupResponse[i].securityPicture){
+                    userIndex = i;
                 }
             }
         }
+        
 
     if(userIndex == -1){
         session.send("Sorry, that picture did not match any of our accounts. Would you like to send another?");
