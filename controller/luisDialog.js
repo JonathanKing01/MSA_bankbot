@@ -5,6 +5,7 @@ var welcomeCardBuilder = require('./welcomeCard');
 var loginData = require("./UserLogin");
 var customVision = require("./customVision");
 var currency = require("./currency");
+var request = require('request'); //node module for http post requests
 
 exports.startDialog = function (bot) {
     
@@ -122,9 +123,10 @@ exports.startDialog = function (bot) {
             builder.Prompts.text(session,"When you created your account you posted pictures of a certain item. Please post the url of a picture of that item.");
         },
         function (session, results, next) {
+
             if(results.response == "Admin coffee overide"){
-                loginData.lookupPicture(session, session.conversationData["username"], "coffee");;
-            } else{
+                loginData.lookupPicture(session, session.conversationData["username"], "coffee");
+            } else {
                 customVision.retreiveMessage(session, results.response);
             }
         },

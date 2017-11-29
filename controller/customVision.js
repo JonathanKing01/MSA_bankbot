@@ -14,15 +14,11 @@ exports.retreiveMessage = function (session, message){
         },
         body: { 'Url': message}
     }, function(error, response, body){
-        //session.send(JSON.stringify(body));
-        userLogin.lookupPicture(session,session.conversationData["username"] , body.Predictions[0].Tag);
+        if(body && body.Predictions && body.Predictions[0].Tag){
+            userLogin.lookupPicture(session,session.conversationData["username"] , body.Predictions[0].Tag);
+        } else {
+            session.send("Error: %s", JSON.stringify(body));
+        }
     });
 }
 
-function validResponse(body, session){
-    if (body && body.Predictions && body.Predictions[0].Tag){
-        userLogin.lookupPicture(session,session.conversationData["username"] , body.Predictions[0].Tag);
-    } else{
-        session.send('Oops. That picture did not work. Please try another.');
-    }
-}
