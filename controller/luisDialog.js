@@ -3,6 +3,7 @@ var builder = require('botbuilder');
 var welcomeCardBuilder = require('./welcomeCard');
 var loginData = require("./UserLogin");
 var customVision = require("./customVision");
+var currency = require("./currency");
 
 exports.startDialog = function (bot) {
     // Replace {YOUR_APP_ID_HERE} and {YOUR_KEY_HERE} with your LUIS app ID and your LUIS key, respectively.
@@ -53,15 +54,15 @@ exports.startDialog = function (bot) {
         }
 
         loginData.attemptLogin(session,session.conversationData["username"],session.conversationData["password"]);
-     }]
+     }
     
-    ).triggerAction({
+    ]).triggerAction({
         matches: 'AccountQueriesIntent'
     });
 
     bot.dialog('InternationalTradingIntent', function (session, args) {
         
-        session.send("What would you like to know about the international market?");
+        session.send("What would you like to know about the international market? (At the moment all I can do is convert currency)");
     
     }).triggerAction({
         matches: 'InternationalTradingIntent'
@@ -88,7 +89,19 @@ exports.startDialog = function (bot) {
         matches: 'requestLoginTimeIntent'
     });
 
-    
+    bot.dialog('currencyExchangeIntent', 
+        function (session, args, next) {
+            
+        var amount = builder.EntityRecognizer.findEntity(args.intent.entities, 'amount').entity;
+        var from = builder.EntityRecognizer.findEntity(args.intent.entities, 'from').entity;
+        var to = builder.EntityRecognizer.findEntity(args.intent.entities, 'to').entity;
+
+        currency.displayExchangeInfo(session,amount,from,to);
+        
+    }
+    ).triggerAction({
+        matches: "currencyExchangeIntent"
+    });
 
     bot.dialog("ResetPasswordIntent",[
         function (session, args, next) {
@@ -103,61 +116,24 @@ exports.startDialog = function (bot) {
             if (results.response){
                 session.conversationData["username"] = results.response;
             }
-            if (!session.conversationData["password"]) {
-                builder.Prompts.text(session, "Please enter the password for your account:");           
-            } 
-            next();
-        },
-        function (session, results, next) {
-            if (results.response){
-                session.conversationData["password"] = results.response;
-            }
-            loginData.attemptLogin(session,session.conversationData["username"],session.conversationData["password"]);
-        
-            next();
-        },
-        function (session, results, next) {
             
-            if (!session.conversationData["loggedIn"]) {
-                // Not finished, need to add a login loop
-                session.send(session, "Sorry, you cannot reset your password until you log in correctly");           
-                
-            } else {
-                builder.Prompts.text(session,"When you created your account you posted pictures of a certain item. Please post the url a picture of that item.");
-                
-            }
+            builder.Prompts.attachment(session,"When you created your account you posted pictures of a certain item. Please post the url of a picture of that item.");
+            
         },
         function (session, results, next) {
             customVision.retreiveMessage(session, results.response);
         },
         function(session,results, next){
-            if (session.conversationData["loggedIn"]){
-                if (results.response){
-                    session.conversationData["password"] = results.response;
-                }
-            
-                loginData.makeNewUser(session,session.conversationData["username"],session.conversationData["password"],session.conversationData["tag"]);
-                session.send("Password successfully reset");
+            if (results.response){
+                session.conversationData["password"] = results.response;
             }
+            
+            loginData.makeNewUser(session,session.conversationData["username"],session.conversationData["password"],session.conversationData["tag"]);
+            session.send("Password successfully reset");
+            
         }
     ]).triggerAction({
       matches: 'ResetPasswordIntent'  
     });
 
-    function isAttachment(session) { 
-        var msg = session.message.text;
-        if ((session.message.attachments && session.message.attachments.length > 0) || msg.includes("http")) {
-            if(!session.conversationData["loggedIn"]){
-                //call custom vision
-                customVision.retreiveMessage(session);
-            } else {
-                session.send("Please login first before attempting to reset password");
-            }
-            return true;
-            
-        }
-        else {
-            return false;
-        }
-    }
 }

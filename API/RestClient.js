@@ -33,6 +33,20 @@ exports.lookForUser = function getData(url, session, username, password, callbac
         });
 };
 
+exports.lookForUserbyPicture = function getData(url, session, username, callback,tag){
+    
+ 
+         request.get(url, {'headers':{'ZUMO-API-VERSION': '2.0.0'}}, function handleGetReponse(err,res,body){
+     
+             if(err){
+                 console.log(err);
+             }else {
+                callback(body,session,username,tag);
+             }
+             
+         });
+ };
+
 exports.postNewLogin = function postData(url, session, username){
     
     var options = {
@@ -105,4 +119,17 @@ exports.deleteUser = function deleteData(url, session, username, id){
 
 };
 
+exports.getExchangeRate = function getData(url, session, callback,amount, from, to){
+    
+ 
+         request.get(url, {'headers':{'ZUMO-API-VERSION': '2.0.0'}}, function handleGetReponse(err,res,body){
+     
+             if(err){
+                 console.log(err);
+             }else {
+                callback(body,session,amount,from,to);
+             }
+             
+         });
+ };
 
